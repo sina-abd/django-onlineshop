@@ -5,6 +5,7 @@ import random
 from utils import send_OTPcode
 from .models import OTPCode, User
 from django.contrib import messages
+from datetime import datetime, timedelta
 
 
 class UserRegisterView(View):
@@ -43,15 +44,22 @@ class UserVerificationView(View):
         user_session = request.session['user_registration_info']
         code_instance = OTPCode.objects.get(phone_number=user_session['phone_number'])
         form = self.form_class(request.POST)
-
+        code_now_difference = (datetime.now() - code_instance.created).total_seconds() 
+        print('#'*150)
+        print(type(code_instance.created))
+        print(type(datetime.now()))
         if form.is_valid():
             cd = form.cleaned_data
             if cd['code'] == code_instance.code:
-                User.objects.create_user(user_session['phone_number'], user_session['email'], 
-                                         user_session['full_name'], user_session['password'])
-                code_instance.delete()
-                messages.success(request, 'you verified succussfully', 'success')
-                return redirect('home:home')
+                if code_now_difference <= 120: #solve this
+                    User.objects.create_user(user_session['phone_number'], user_session['email'], 
+                                            user_session['full_name'], user_session['password'])
+                    code_instance.delete()
+                    messages.success(request, 'you verified succussfully', 'success')
+                    return redirect('home:home')
+                else:
+                    messages.error(request, 'The code time is over', 'danger')
+                    return redirect('accounts:user_verification')
             else:
                 messages.error(request, 'The code is wrong', 'danger')
                 return redirect('accounts:user_verification')
