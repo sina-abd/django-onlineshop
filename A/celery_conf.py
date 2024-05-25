@@ -8,7 +8,8 @@ celery_app = Celery('A')
 
 celery_app.autodiscover_tasks()
 
-celery_app.conf.broker_url = 'amqp://rabbitmq'
+celery_app.conf.broker_connection_retry_on_startup = True
+celery_app.conf.broker_url = 'amqp://'
 celery_app.conf.result_backend = 'rpc://'
 celery_app.conf.task_serializer = 'json'
 celery_app.conf.result_serializer = 'pickle'
