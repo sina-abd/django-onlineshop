@@ -1,11 +1,13 @@
 from django.shortcuts import render, redirect
 from django.views import View
-from .forms import UserRegistrarionForm, VerificationCodeForm
+from .forms import UserRegistrarionForm, VerificationCodeForm, UserLoginForm
 import random
 from utils import send_OTPcode
 from .models import OTPCode, User
 from django.contrib import messages
 from datetime import datetime, timedelta
+from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 
 class UserRegisterView(View):
@@ -65,3 +67,28 @@ class UserVerificationView(View):
                 return redirect('accounts:user_verification')
         return redirect('home:home')
 
+class UserLoginView(View):
+    form_class = UserLoginForm
+    template_name = 'accounts/login.html'
+
+    def get(self, request):
+        form = self.form_class
+        return render(request, self.template_name, {'form':form})
+    
+    def post(self, request):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            cd = form.cleaned_data
+            user = authenticate(request, phone_number=cd['phone_number'], password=cd['password'])
+            if user is not None:
+                login(request, user)
+                messages.success(request, 'logged in successfully', 'success')
+                return redirect('home:home')
+            messages.error(request, 'phone number or password is wrong', 'warning')
+        return render(request, self.template_name, {'form':form})
+    
+class UserLogoutView(LoginRequiredMixin, View):
+    def get(self, request):
+        logout(request)
+        messages.success(request, 'logged out successfully', 'success')
+        return redirect('home:home')
