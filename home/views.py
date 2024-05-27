@@ -3,7 +3,8 @@ from django.views import View
 from .models import Product
 from . import tasks
 from django.contrib import messages
-
+from django.contrib.auth.mixins import UserPassesTestMixin
+from utils import IsAdminUserMixin
 class HomeView(View):
     def get(self, request):
         products = Product.objects.filter(available=True)
@@ -14,20 +15,20 @@ class ProductDetailView(View):
         product = get_object_or_404(Product, slug=slug)
         return render(request, 'home/detail.html', {'product':product})
     
-class BucketHome(View):
+class BucketHome(IsAdminUserMixin, View):
     template_name = 'home/bucket.html'
 
     def get(self, request):
         objects = tasks.bucket_objects_task()
         return render(request, self.template_name, {'objects':objects})
     
-class DeleteBucketObject(View):
+class DeleteBucketObject(IsAdminUserMixin, View):
     def get(self, request, key):
         tasks.delete_object_task.delay(key)
         messages.success(request, 'your object will be deleted', 'info')
         return redirect('home:bucket')
     
-class DownloadBucketObject(View):
+class DownloadBucketObject(IsAdminUserMixin, View):
     def get(self, request, key):
         tasks.download_object_task.delay(key)
         messages.success(request, 'your object will be downloaded', 'info')

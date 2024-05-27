@@ -1,6 +1,7 @@
 from kavenegar import *
 from dotenv import load_dotenv
 import os
+from django.contrib.auth.mixins import UserPassesTestMixin
 
 def send_OTPcode(phone_number, code):
 
@@ -17,3 +18,7 @@ def send_OTPcode(phone_number, code):
         print(e)
     except HTTPException as e:
         print(e)
+
+class IsAdminUserMixin(UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.is_admin
