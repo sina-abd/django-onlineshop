@@ -1,5 +1,6 @@
 from django.db import models
 from django.urls import reverse
+from django_ckeditor_5.fields import CKEditor5Field
 
 
 class Category(models.Model):
@@ -26,7 +27,7 @@ class Product(models.Model):
     name = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True)
     image = models.ImageField()
-    description = models.TextField()
+    description = CKEditor5Field(config_name='extends')
     price = models.IntegerField()
     available = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True)
